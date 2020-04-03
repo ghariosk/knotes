@@ -53,7 +53,7 @@ passport.use(
         async (email, password, done) => {
             try {
             
-                const [[user]] = await db.execute('SELECT `email`,`id`, `password`, name , profile_picture_key FROM `users` WHERE `email`=(?) LIMIT 1' ,[email]);
+                const [[user]] = await db.execute('SELECT `email`,`id`, `password`, name , profile_picture_key FROM `users` WHERE `email`=(?) AND `status` = ? LIMIT 1' ,[email, "CONFIRMED"]);
 
                 if(!user) return done(null, false, {message: "Wrong Credentials"});
 
