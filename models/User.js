@@ -35,6 +35,7 @@ class User extends Model {
 
     static async updateProfilePicture(id, key) {
         try {
+            console.log("TESST");
            return await this.update(id, {profile_picture_key: key})
         } catch(e) {
             throw e;

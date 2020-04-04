@@ -43,19 +43,7 @@ class Model {
         return this;
     }
 
-    // static where([field, value]) {
-    //     this.whereFields = [
-    //         this.whereFields,
-    //         ...field
-    //     ]
 
-    //     this.whereValues = [
-    //         this.whereValues,
-    //         ...value
-    //     ]
-
-    //     return this;
-    // }
 
     static async create({...params}) {
         try {

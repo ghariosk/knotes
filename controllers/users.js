@@ -3,10 +3,15 @@ const {
 } = require('../utilities/database');
 const AWS = require('aws-sdk');
 let uniqid = require('uniqid');
-// require('dotenv').config('../.env');
+
 
 let User = require('../models/User');
 let Friendship = require('../models/Friendship');
+let piexif = require('piexifjs');
+
+
+
+const TYPE = `binary`
 
 let s3Params = {
     region: process.env.AWS_REGION,
@@ -21,24 +26,64 @@ var profilePictureParams = {
 };
 
 
+let removeExif = function(fromFile) {
+    // const newData = piexif.remove(
+    //   fs.readFileSync(fromFile).toString(TYPE)
+    // // )
+  
+    // fs.writeFileSync(toFile, new Buffer(newData, TYPE))
+    var exifObj = piexif.load(fromFile);
+    for (var ifd in exifObj) {
+        if (ifd == "thumbnail") {
+            continue;
+        }
+        console.log("-" + ifd);
+        for (var tag in exifObj[ifd]) {
+            console.log("  " + piexif.TAGS[ifd][tag]["name"] + ":" + exifObj[ifd][tag]);
+        }
+    }
+    return piexif.remove(fromFile)
+}
+
+
 async function uploadProfilePicture(req,res) {
-    let connection = await mainDB();
     const file = req.file;
+    // console.log(file);
+    // file = removeExif(file.buffer);
     const key = `${req.user.email}/profile-picture/${req.file.originalname}`
+
+    profilePictureParams = {
+        ...profilePictureParams,
+        Key: key,
+        ContentType: file.mimetype,
+        // Body: buffer,
+    }
+ 
+    if (file.mimetype === "image/jpeg") {
+        let imageBase64 = "data:image/jpeg;base64," + file.buffer.toString('base64')
+
+        imageBase64 = removeExif(imageBase64);
+        imageBase64 = imageBase64.replace(/^data:image\/jpeg;base64,/, "");
+        buffer = Buffer.from(imageBase64, 'base64')
+        profilePictureParams.Body = buffer
+
+    } else {
+        profilePictureParams.Body = file.buffer
+    }
+    
     try {
         
-        profilePictureParams = {
-            ...profilePictureParams,
-            Key: key,
-            ContentType: file.mimetype,
-            Body: file.buffer,
-        }
+       
 
         let s3bucket = new AWS.S3(s3Params);
        
         let upload = await s3bucket.upload(profilePictureParams).promise();
+        console.log(upload);
 
         let update = await User.updateProfilePicture(req.user.id, key);
+
+        console.log(update);
+
 
         res.status(201).send({status: 201, key: key, message: "Success"});
           
