@@ -57,11 +57,8 @@ async function requestFriendship (req,res) {
         let userExists = await User.exists(friend_id);
         if(!userExists) return res.status(404).send({message: "No user match"});
         let friendshipExists = await Friendship.alreadyExists(req.user.id, friend_id);
-
         if(friendshipExists) return res.status(404).send({message: "Friendship or request exists"});
-
         let request = await Friendship.request(req.user.id, friend_id);
-
         res.status(201).send({status: 201, message: "Requested" , friendship : request});
 
     } catch(e) {
@@ -139,23 +136,26 @@ async function getFriendRequests(req,res) {
 }
 
 
-async function getUser(req,res) {
-   
-   
-}
 
 async function getProfile(req,res) {
     try {
         let {id} = req.params;
-        console.log("ID IS", id);
 
-       let activity = await User.getActivity(id);
+        let activity =[];
+        let profile= [];
+        let notes = [];
 
-       let profile = await  User.getProfile(req.user.id, id);
+        let areFriends = await User.areFriends(id, req.user.id);
 
-       let notes = await User.getNotes(id, req.user.id);
-   
-       res.status(200).send({status: 200, message: "Success", activity: activity, profile: profile, notes: notes})
+      
+        if (areFriends || id === req.user.id) {
+             activity =  User.getActivity(id);
+             notes  = User.getNotes(id, req.user.id);
+        }
+        profile =  User.getProfile(req.user.id, id);
+        let results = await Promise.all([activity, profile, notes])
+     
+        res.status(200).send({status: 200, message: "Success", activity: results[0], profile: results[1], notes: results[2]})
 
     } catch(e) {
         console.log(e)
@@ -182,7 +182,6 @@ module.exports = {
     denyFriendship,
     acceptFriendship,
     getFriendRequests,
-    getUser,
     friendshipRequested,
     deleteFriendship,
     getProfile,

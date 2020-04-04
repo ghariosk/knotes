@@ -77,20 +77,38 @@ class User extends Model {
     }
 
     static async getNotes(user_id, auth_id) {
-        try {
-            let query = `SELECT * FROM notes WHERE user_id = ? `;
-            let params = [user_id];
-            if (user_id !== auth_id) { 
-                query += "AND privacy = ?";
-                params.push("public");
+        return new Promise(async (resolve,reject)=> {
+            try {
+                let query = `SELECT * FROM notes WHERE user_id = ? `;
+                let params = [user_id];
+                if (user_id !== auth_id) { 
+                    query += "AND privacy = ? ";
+                    params.push("public");
+                }
+                query += "ORDER BY created_at DESC"
+
+                let [results] = await db.execute(query,params);
+                resolve(results);
+            }   catch (e) {
+                reject(e)
             }
-            console.log(query)
-            let [results] = await db.execute(query,params);
-            return results;
-        }   catch (e) {
-            throw e
-        }
+
+        })
+       
     } 
+
+    static async areFriends(user_1, user_2) {
+        try {
+            let query = `SELECT 1 as friends FROM friendships
+             WHERE ((friend_id = ? AND user_id =?) OR (friend_id = ? AND user_id =?))
+             AND status = ? LIMIT 1`
+             let params = [user_1, user_2, user_2, user_1 ,"ACCEPTED"]
+            let [[results]] = await db.execute(query,params)
+            return results? true : false;
+        } catch(e) {
+            throw e;
+        }
+    }
 
     static async all(auth_id) {
         try {
@@ -98,13 +116,14 @@ class User extends Model {
                         users.id, name, email, profile_picture_key, friendships.status, friendships.id as friendship_id
                         FROM users
                         LEFT JOIN friendships 
-                        ON ((user_id =? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)) AND (friendships.status = ? OR friendships.status = ?)
-                        WHERE users.id != ?`
+                        ON ((user_id = users.id AND friend_id = ?) OR 
+                        (friend_id = users.id AND user_id = ?)) AND (friendships.status = ? OR friendships.status = ?)
+                        WHERE users.id != ?
+                        `
 
-            let params = [auth_id, auth_id , auth_id , auth_id, "ACCEPTED" , "REQUESTED", auth_id]
+            let params = [auth_id, auth_id, "ACCEPTED" , "REQUESTED", auth_id]
 
             let [results] = await db.execute(query,params);
-
             return results
         } catch(e) {
             throw e;

@@ -5,13 +5,13 @@ var multer  = require('multer')
 let {
     uploadProfilePicture,
     getFriendRequests,
-    getUsers,
     requestFriendship,
     denyFriendship,
     acceptFriendship,
     friendshipRequested,
     deleteFriendship,
-    getProfile
+    getProfile,
+    getUsers
 } = require('../controllers/users');
 
 var storage = multer.memoryStorage();
@@ -36,9 +36,6 @@ router.put('/friends/:friend_id/requests/:id', friendshipRequested, acceptFriend
 router.delete('/friends/:friend_id/:friendship_id', deleteFriendship);
 
 router.get('/:id', getProfile)
-
-
-
 
 router.get('/', getUsers);
 

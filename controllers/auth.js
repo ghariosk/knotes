@@ -64,6 +64,7 @@ async function sendConfirmationEmail(req,res) {
         let email;
         // Check whether the confirmation email is requested directly after sign up or on demand from the user.
         if(req.user) {
+            console.log("IN REQ.USER")
             email = req.user.email
             db.execute('UPDATE `users` SET `otp`= ?, `status`= ?, `name` = ? WHERE `id` = ?' , [OTP, 'UNCONFIRMED',req.body.name, req.user.id])
             sendEmail(email, "Your Confirmation Code", `Your confirmation code is ${OTP} and your username is ${email}`);
