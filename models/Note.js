@@ -14,6 +14,7 @@ class Note extends Model {
     static async all(user_id) {
         try {
 
+            // get the notes, its user and the friendship with the logged in user if it exists
             let [notes] = await db.execute(
                 `SELECT
                 notes.id,

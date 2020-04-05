@@ -12,7 +12,7 @@ class User extends Model {
     };
 
     static getQuery (field) {
-        return `SELECT ${this.selected? this.selected : "*"} FROM ${this.table()} WHERE ${field} = ? AND status = "CONFIRMED" LIMIT 1`;
+        return `SELECT ${this.selected? this.selected : "*"} FROM ${this.table()} WHERE ${field} = ? AND (status = "CONFIRMED" OR status="FORCE_CHANGE_PASSWORD") LIMIT 1`;
     }
 
 

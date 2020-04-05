@@ -2,6 +2,7 @@ let db = require('../utilities/database');
 
 let uniqid = require('uniqid');
 
+// a custom made simple query builder
 
 class Model {
     constructor(id) {
@@ -14,10 +15,12 @@ class Model {
         return ""
     };
 
+    // generates the get Query
     static getQuery (field) {
         return `SELECT ${this.selected? this.selected : "*"} FROM ${this.table()} WHERE ${field} = ? LIMIT 1`;
     }
 
+    // uses the get query with a default of id as condition
     static async get(value, field = "id") { 
         let query = this.getQuery(field)
         let [[user]] = await db.execute(query,[value]);
@@ -32,7 +35,6 @@ class Model {
 
    
     static async all() {
-        let connection = await mainDB();
         let query = `SELECT ${this.selected? this.selected : "*"} FROM ${this.table()} `;
         let [[user]] = await db.execute( query,[id]);
         return user;  
@@ -68,6 +70,7 @@ class Model {
     }
 
     static createAttributes(params) {
+        // creates a string of the from x,y,z
         return Object.keys(params)
             .map((el) => {
                 return el
@@ -97,6 +100,8 @@ class Model {
     }
 
     static  updateAttributes(params) {
+        // creates a string of the form by plucking the keys of the params object :
+        //  x = ? , y=?
         return Object.keys(params)
             .map((el) => {
                 return `${el} = ?`
@@ -105,6 +110,7 @@ class Model {
     }
 
     static values(params) {
+        // plucks the values out of the params object
         return Object.values(params).map((el) => {
             return el;
         });

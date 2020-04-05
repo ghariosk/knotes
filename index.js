@@ -14,7 +14,7 @@ let authRoutes = require('./routes/auth');
 let usersRoutes = require('./routes/users');
 
 let cors_params = {
-    origin: 'http://localhost:3001',
+    origin: process.env.FRONT_END_HOST,
     exposedHeaders: ['Content-Type', 'Accept', 'Authorization'],
     credentials: true
 };
